@@ -1,6 +1,8 @@
+from typing import Sequence
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
+from difflib import SequenceMatcher
 
 class FoodManager():
     def __init__(self):
@@ -41,20 +43,50 @@ class FoodManager():
 
 
     def get_food_macro(self):
-        foodtest = "szpinak"
-        self.food_macro_source[1], self.food_macro_source[3] = foodtest, foodtest
-        macro_source_combined = ''.join(self.food_macro_source)
-        temp = "https://kalkulatorkalorii.net/tabela-kalorii/1/q-szpinak?query=szpinak&sc=Produkty"
-        page = self.session_object.get(temp)
+
+        foodtest = input("Wprowadź produkt:")
+        source = "https://potrafiszschudnac.pl/diety/tabele-kalorycznosci-produktow/"
+        page = self.session_object.get(source)
         soup = BeautifulSoup(page.text, 'lxml')
-        content = soup.find('div', class_='tab-content')
+        content = soup.find('table', class_='prods_table')
         # print(content)
         if content != None:
-            test = [r.get_text() for r in content.select('td a')]
+            macro_table = [r.get_text() for r in content.select('tbody tr td')]
+        counter = 0
+        macro_dictionary = {}
+        for item in macro_table:
+            if counter == 0:
+                temp_key = str(item)
+                macro_dictionary[temp_key] = []
+            elif 0 < counter < 4:
+                macro_dictionary[temp_key].append(str(item))
+            elif counter == 4:
+                macro_dictionary[temp_key].append(str(item))
+                counter = -1
+            counter += 1
+        # [kcal, białka, tłuszcze, węglowodany]
+        keys_list = list(macro_dictionary)
+        similarity = []
+        user_satisfied = False
+        try:
+            print(macro_dictionary[foodtest])
+        except:
+            max_ratio_index = 0
+            for key in macro_dictionary.keys():
+                similarity.append(SequenceMatcher(a=foodtest, b=key).ratio())
+                similarity_sorted = list(similarity)
+                similarity_sorted.sort(reverse=True)  
+            while not user_satisfied:
+                print(f'Miałeś/Miałaś na myśli: {keys_list[similarity.index(similarity_sorted[max_ratio_index])]}')
+                item = keys_list[similarity.index(similarity_sorted[max_ratio_index])]
+                user_input = input("[TAK/NIE]: ")
+                if user_input.lower() == "tak":
+                    user_satisfied = True
+                    print(f"\nWartości odżywcze (100g):\n")
+                    print(f"kcal: {macro_dictionary[item][0]} | białko: {macro_dictionary[item][1]} | tłuszcz: {macro_dictionary[item][2]} | węglowodany {macro_dictionary[item][3]}")
+                else:
+                    max_ratio_index += 1
 
-        # SSL Certification
-
-        print(test)
 
     def get_user_food_preference(self):
         pass
