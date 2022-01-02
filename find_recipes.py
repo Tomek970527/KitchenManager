@@ -21,60 +21,6 @@ class RecipeFinder():
         self.search_url = "/szukaj?search_api_views_fulltext="
         self.session_object = requests.Session()
 
-    '''
-    # ALGORITHM TO FIND SIMILAR WORDS (NOT ONLY THE SAME) IN INGREDIENTS STRING
-    def KMPSearch(self, pattern, txt):
-        M = len(pattern)
-        N = len(txt)
-
-        lps = [0]*M
-        j = 0 
-        self.computeLPSArray(pattern, M, lps)
-  
-        i = 0 # index for txt[]
-        while i < N:
-            if pattern[j] == txt[i]:
-                i += 1
-                j += 1
-    
-            if j == M:
-                # print "Found pattern at index " + str(i-j)
-                j = lps[j-1]
-    
-            # mismatch after j matches
-            elif i < N and pattern[j] != txt[i]:
-                # Do not match lps[0..lps[j-1]] characters,
-                # they will match anyway
-                if j != 0:
-                    j = lps[j-1]
-                else:
-                    i += 1
-
-    
-    def computeLPSArray(self, pattern, M, lps):
-        len = 0
-
-        lps[0] = 0
-        i = 1
-
-        while i < M:
-            if pattern[i]== pattern[len]:
-                len += 1
-                lps[i] = len
-                i += 1
-            else:
-                # This is tricky. Consider the example.
-                # AAACAAAA and i = 7. The idea is similar 
-                # to search step.
-                if len != 0:
-                    len = lps[len-1]
-    
-                    # Also, note that we do not increment i here
-                else:
-                    lps[i] = 0
-                    i += 1
-    '''
-
 
     def check_ingredients(self, source):
         page = self.session_object.get(source)
@@ -89,12 +35,12 @@ class RecipeFinder():
             combined_ingredients = temp.replace("\t","")
             # print(combined_ingredients)
             if ingredients:
-                # KMP Algorithm
                 for s in self.search:
                     if s in combined_ingredients:
                         self.links_filtered.append(source)
                         self.all_ingredients.append(combined_ingredients)
                         # print(self.links_filtered
+
 
     def check_url(self, i):
         if i == 0:
@@ -109,29 +55,6 @@ class RecipeFinder():
             self.urls.append(source) 
             self.all_content.append(content)
 
-    # def new_check_url(self, num):
-    #     if num == 0:
-    #         source = self.base + self.search_url
-    #         source_plus_one = self.base + self.search_url + "&page=1"
-    #     else:
-    #         source = self.base + self.search_url + "&page=" + str(num)
-    #         source_plus_one = self.base + self.search_url + "&page=" + str(num + 1)
-
-    #     page = self.session_object.get(source)
-    #     page_plus_one = self.session_object.get(source_plus_one)
-    #     soup = BeautifulSoup(page.text, 'lxml')
-    #     soup_plus_one = BeautifulSoup(page_plus_one.text, 'lxml')
-    #     content = soup.find('div', class_='view-content')
-    #     content_plus_one = soup_plus_one.find('div', class_='view-content')
-
-    #     if content != None and content_plus_one == None:
-    #         return num
-    #     elif content == None:
-    #         num -= num // 2
-    #         return self.new_check_url(num)
-    #     elif content != None and content_plus_one != None:
-    #         num += num // 2
-    #         return self.new_check_url(num)
 
     def download_urls(self):
         # i = 0
@@ -148,17 +71,13 @@ class RecipeFinder():
         with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
             executor.map(self.check_url, numbers)
 
-        # self.last_page = self.new_check_url(100)
-        # print(self.last_page)
-        # self.urls = [self.base + self.search_url + "&page=" + str(i) if i != 0 else self.base + self.search_url for i in range(self.last_page + 1)]
-        # print(self.urls)
-
         all_urls = pd.DataFrame({
            "links": self.urls
         })
 
         file_name = "URLs.xlsx"
         all_urls.to_excel(file_name)
+
 
     def find_recipes_in_url(self, content):
         titles = [r.get_text() for r in content.select('.field-name-title a')]
@@ -172,11 +91,13 @@ class RecipeFinder():
             # self.all_ranks.append(ranks[i])
             # self.all_num_of_comments.append(num_of_comments[i])
 
+
     def download_recipes(self):
         threads = min(self.max_threads, len(self.all_content))
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
             executor.map(self.find_recipes_in_url, self.all_content)
+
 
     def download_ingredients(self):
         threads = len(self.all_links)
@@ -219,52 +140,3 @@ class RecipeFinder():
 
 k = RecipeFinder(main="makaron", additional1="śmietanka")
 k.main()
-
-'''
-# FINDING THE LAST PAGE USING RECURSION AND SOME KIND OF BINARY SEARCH
-def test(num, session_object):
-        search_url = "/szukaj?search_api_views_fulltext=kurczak"
-        base = "https://www.kwestiasmaku.com"
-
-        if num == 0:
-            source = base + search_url
-            source_plus_one = base + search_url + "&page=1"
-        else:
-            source = base + search_url + "&page=" + str(num)
-            source_plus_one = base + search_url + "&page=" + str(num + 1)
-
-        page = session_object.get(source)
-        page_plus_one = session_object.get(source_plus_one)
-        soup = BeautifulSoup(page.text, 'lxml')
-        soup_plus_one = BeautifulSoup(page_plus_one.text, 'lxml')
-        content = soup.find('div', class_='view-content')
-        content_plus_one = soup_plus_one.find('div', class_='view-content')
-
-        if content != None and content_plus_one == None:
-            print(f'This is the final page: {num}')
-            return num
-        elif content == None:
-            num -= num // 2
-            print('Test')
-            return test(num, session_object)
-        elif content != None and content_plus_one != None:
-            num += num // 2
-            return test(num, session_object)
-    
-def find_last_page():
-    max_page = 100
-    # found = False
-    session_object = requests.Session()
-    # result = test(max_page, session_object)
-    print(test(max_page, session_object))
-    # while not found:
-    #     if test(max_page, session_object):
-    #         prev_max = max_page
-    #         max_page += 1.5 * max_page 
-    #     else:
-    #         diff = (max_page - prev_max) // 2
-    #         prev_max = max_page
-    #         max_page -= diff
-
-find_last_page()
-'''
