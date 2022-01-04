@@ -1,4 +1,5 @@
-KitchenManager [Status - ONGOING]
+#KitchenManager [Status - ONGOING]
+
 Django based webapplication which helps users in managing their kitchen resources. [02.01.2022] STATUS UPDATE: Currently working on main functionalities of this application:
 
 enter food items that require refrigeration and don't require refrigeration
