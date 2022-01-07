@@ -123,9 +123,8 @@ class FoodManager():
             })
             file_name = "FoodList.xlsx"
             food_items.to_excel(file_name)
-        
-        
 
+    # COMPARE CONTENTS OF YOUR FRIDGE AND CUPBOARD WITH FOODLIST 
     def create_shopping_list(self):
         pass
 
@@ -188,6 +187,9 @@ class Fridge():
         # 2 categories:
         # - expired
         # - equal or less than 3 days to expire
+        # Open file 'Fridge.xlsx' read the data
+        # find rows where products are after the expiration date
+        # find rows where products are 7 days prior the expiration date
         pass
 
     def main(self):
