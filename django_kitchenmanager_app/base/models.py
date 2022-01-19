@@ -1,59 +1,74 @@
+from locale import currency
+from tkinter import CHORD
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.deletion import CASCADE
+import uuid
 
 # Create your models here.
-class Kitchen(models.Model):
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    name = models.CharField(max_length=120)
-    description = models.TextField(null=True, blank=True)
+class Profile(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    username = models.CharField(max_length=200)
+    email = models.EmailField(max_length=254)
+    # profile_image = models.ImageField(upload_to='images/')
+    facebook_link = models.CharField(max_length=200)
     created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ['-updated', '-created']
 
     def __str__(self):
-        return self.name
+        return self.username
 
-class FoodCategory(models.Model):
-    name = models.CharField(max_length=120, null=False)
+class FoodGroup(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
+    name = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.name
 
 class FoodProduct(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    name = models.CharField(max_length=120, null=False, blank=False)
-    food_category = models.ForeignKey(FoodCategory, on_delete=models.SET_NULL, null=True)
-    macro = models.CharField(max_length=200)
+    id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
+    name = models.CharField(max_length=200)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    group = models.ForeignKey(FoodGroup, on_delete=models.SET_NULL, null=True, blank=True)
+    needs_cooling = models.BooleanField()
+    expiration_date = models.DateField()
     created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ['-updated', '-created']
 
     def __str__(self):
         return self.name
 
-class FoodControl(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    food_product = models.OneToOneField(FoodProduct, on_delete=models.CASCADE, null=False)
-    expiration_date = models.DateField(null=False, blank=False)
-    opening_date = models.DateField(null=True)
-    require_refrigeration_before_opening = models.BooleanField()
-    require_refrigeration_after_opening = models.BooleanField()
-    time_to_consume = models.DurationField()
+class NutritionalValue(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
+    food_name = models.CharField(max_length=200)
+    food_product = models.ForeignKey(FoodProduct, on_delete=models.SET_NULL, null=True, blank=True)
+    fat = models.FloatField()
+    protein = models.FloatField()
+    carbohydrates = models.FloatField()
+    calories = models.FloatField()
 
     def __str__(self):
-        return self.expiration_date
+        return self.food_name
 
-class FoodCost(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    food_name = models.CharField(max_length=120)
-    price_paid = models.DecimalField(max_digits=10, decimal_places=2)
+class FoodPrice(models.Model):
+    CURRENCY_TYPE = (
+        ('EUR', 'euro'),
+        ('PLN', 'polish złoty'),
+        ('USD', 'dollar'),
+    )
+
+    id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
+    value = models.FloatField()
+    currency = models.CharField(max_length=200, choices=CURRENCY_TYPE)
+    food_name = models.CharField(max_length=200)
+    shop_name = models.CharField(max_length=200)
+    food_product = models.ForeignKey(FoodProduct, on_delete=models.SET_NULL, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.food_name}: {str(self.price_paid)} PLN'
+        return self.food_name + ' | ' + str(self.value) + ' | ' + self.currency + ' | ' + str(self.created.strftime("%d.%m.%Y")) 
+
+
+
+
+

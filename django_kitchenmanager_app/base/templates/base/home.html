@@ -1,0 +1,14 @@
+{% extends 'main.html' %}
+
+{% block content %}
+<div>
+    {% for f in food %}
+        <h2>{{f.name}}</h2>
+        {% for p in prices %}
+            {% if p.food_product.id == f.id or f.name == p.food_name %} 
+                <h4>{{p.value}}</h4>
+            {% endif %}
+        {% endfor %}
+    {% endfor %}
+</div>
+{% endblock %}
