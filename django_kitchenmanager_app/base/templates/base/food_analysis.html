@@ -1,0 +1,18 @@
+{% extends 'main.html' %}
+
+{% block content %}
+<div class="content">
+    <h3>Your Food Products</h3>
+    <h5>   NAME    |    FOOD GROUP    |    EXPIRATION DATE     |    NEEDS COOLING </h5>
+    {% for f in food %}
+        {% if f.needs_cooling == True %}
+            <p>{{f.name}} | Calories: 15; Fat: 10; Cabohydrates: 12; Protein: 11; Sugar: 55 | {{f.group}} | {{f.expiration_date|date:"Y-m-d"}} | Yes</p>
+        {% else %}
+            <p>{{f.name}} | Calories: 15; Fat: 10; Cabohydrates: 12; Protein: 11; Sugar: 55 | {{f.group}} | {{f.expiration_date|date:"Y-m-d"}} | No</p>
+        {% endif %}
+    {% endfor %}
+    <a href="#">Add</a> | <a href="#">Edit</a> | <a href="#">Delete</a>
+    <h3>Expiration dates check</h3>
+
+</div>
+{% endblock %}
