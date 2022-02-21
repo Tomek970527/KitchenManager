@@ -5,9 +5,17 @@ from django.contrib.auth.models import User
 import datetime
 # Create your views here.
 
-def index(request):
+def register(request):
     context = {}
-    return render(request, 'base/index.html', context)
+    return render(request, 'base/register.html')
+
+def login(request):
+    context = {}
+    return render(request, 'base/login.html')
+
+def password(request):
+    context = {}
+    return render(request, 'base/password.html')
 
 def food_analysis_dashboard(request):
     food = FoodProduct.objects.all()
